@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/product.dart';
+import '../providers/cart_provider.dart';
 import '../widgets/product_card.dart';
 
-class ProductListScreen extends StatefulWidget {
+class ProductListScreen extends ConsumerWidget {
   const ProductListScreen({super.key});
 
-  @override
-  State<ProductListScreen> createState() => _ProductListScreenState();
-}
-
-class _ProductListScreenState extends State<ProductListScreen> {
   static const List<Product> _products = [
     Product(id: 1, name: '무선 이어폰', price: 29000),
     Product(id: 2, name: '기계식 키보드', price: 89000),
@@ -19,22 +16,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
     Product(id: 5, name: '웹캠', price: 67000),
   ];
 
-  // 이 화면만의 독립적인 장바구니 상태.
-  // CartScreen에는 절대 공유되지 않는다 — 이게 버그의 핵심.
-  final List<Product> _cartItems = [];
-
-  void _addToCart(Product product) {
-    final alreadyInCart = _cartItems.any((item) => item.id == product.id);
-    if (alreadyInCart) return;
-
-    setState(() {
-      _cartItems.add(product);
-    });
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final cartItems = ref.watch(cartProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,7 +38,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              '이 화면의 장바구니에 담긴 상품: ${_cartItems.length}개',
+              '이 화면의 장바구니에 담긴 상품: ${cartItems.length}개',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onPrimaryContainer,
                 fontWeight: FontWeight.w500,
@@ -67,11 +52,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               itemBuilder: (context, index) {
                 final product = _products[index];
                 final isInCart =
-                    _cartItems.any((item) => item.id == product.id);
+                    cartItems.any((item) => item.id == product.id);
                 return ProductCard(
                   product: product,
                   isInCart: isInCart,
-                  onAddToCart: () => _addToCart(product),
+                  onAddToCart: () =>
+                      ref.read(cartProvider.notifier).addToCart(product),
                 );
               },
             ),

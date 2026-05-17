@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/product.dart';
+import '../providers/cart_provider.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  // 이 화면도 자체적인 cartItems를 들고 있다.
-  // ProductListScreen의 cartItems와는 완전히 별개의 리스트.
-  // 따라서 상품 화면에서 담은 결과가 여기로 전달되지 않는다 — 의도된 버그.
-  final List<Product> _cartItems = [];
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final total = _cartItems.fold<int>(0, (sum, item) => sum + item.price);
+    final cartItems = ref.watch(cartProvider);
+    final total = cartItems.fold<int>(0, (sum, item) => sum + item.price);
 
     return Scaffold(
       appBar: AppBar(
@@ -26,7 +18,7 @@ class _CartScreenState extends State<CartScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
       ),
-      body: _cartItems.isEmpty
+      body: cartItems.isEmpty
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -58,11 +50,11 @@ class _CartScreenState extends State<CartScreen> {
                       horizontal: 16,
                       vertical: 8,
                     ),
-                    itemCount: _cartItems.length,
+                    itemCount: cartItems.length,
                     separatorBuilder: (context, index) =>
                         const Divider(height: 1),
                     itemBuilder: (context, index) {
-                      final product = _cartItems[index];
+                      final product = cartItems[index];
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 4,

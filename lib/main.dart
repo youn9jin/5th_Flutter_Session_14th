@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'screens/cart_screen.dart';
 import 'screens/product_list_screen.dart';
 
 void main() {
-  runApp(const CartApp());
+  runApp(
+    const ProviderScope(
+      child: CartApp(),
+    ),
+  );
 }
 
 class CartApp extends StatelessWidget {
@@ -39,8 +44,6 @@ class RootTabs extends StatefulWidget {
 class _RootTabsState extends State<RootTabs> {
   int _currentIndex = 0;
 
-  // 의도적으로 두 화면을 그냥 독립된 인스턴스로 둔다.
-  // 각 화면은 자체적으로 cartItems를 관리하므로 절대 공유되지 않는다.
   static const List<Widget> _screens = [
     ProductListScreen(),
     CartScreen(),
