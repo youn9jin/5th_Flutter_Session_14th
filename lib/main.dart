@@ -13,16 +13,28 @@ class MusicApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF6750A4),
+    );
+
     return MaterialApp(
       title: '플레이리스트',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
-        appBarTheme: const AppBarTheme(
+        colorScheme: colorScheme,
+        scaffoldBackgroundColor: colorScheme.surface,
+        appBarTheme: AppBarTheme(
           centerTitle: false,
           elevation: 0,
           scrolledUnderElevation: 0,
+          backgroundColor: colorScheme.surface,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       home: const RootTabs(),
@@ -40,29 +52,47 @@ class RootTabs extends StatefulWidget {
 class _RootTabsState extends State<RootTabs> {
   int _currentIndex = 0;
 
-  // 의도적으로 두 화면을 독립된 인스턴스로 둔다.
-  // 각 화면이 자체적으로 _playlist를 관리하므로 서로 동기화되지 않는다.
-  static const List<Widget> _screens = [
-    SongListScreen(),
-    PlaylistScreen(),
-  ];
-
-  // 뱃지에 표시할 카운트도 여기서 따로 들고 있다.
-  // 두 화면의 _playlist에 접근할 수 없으므로 RootTabs는 자기만의 0개짜리
-  // 카운트만 알 뿐이다. 결과적으로 뱃지는 영원히 0(=비표시) 상태가 된다 — 의도된 버그.
+  // RootTabs도 자체 _playlist를 들고 있다.
+  // - SongListScreen이 추가 시 콜백으로 알려준 곡이 여기에 쌓이고,
+  // - PlaylistScreen이 prop으로 이 리스트를 받아 표시한다.
+  // - PlaylistScreen의 삭제 콜백도 여기서 처리해 이 리스트에서 제거한다.
+  // 단 SongListScreen._playlist는 자기만의 사본을 유지해 외부 제거를 알지 못한다 — 의도된 버그.
   final List<Song> _playlist = [];
+
+  void _addSong(Song song) {
+    final alreadyAdded = _playlist.any((item) => item.id == song.id);
+    if (alreadyAdded) return;
+
+    setState(() {
+      _playlist.add(song);
+    });
+  }
+
+  void _removeSong(Song song) {
+    setState(() {
+      _playlist.removeWhere((item) => item.id == song.id);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final screens = <Widget>[
+      SongListScreen(onAddedToParent: _addSong),
+      PlaylistScreen(playlist: _playlist, onRemove: _removeSong),
+    ];
 
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: screens,
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
+        indicatorColor: colorScheme.primaryContainer,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
