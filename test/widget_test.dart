@@ -14,11 +14,11 @@ void main() {
 
       expect(find.text('이 화면의 플레이리스트: 0곡'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.add_circle_outline).first);
+      await tester.tap(find.text('+ 추가').first);
       await tester.pumpAndSettle();
 
       expect(find.text('이 화면의 플레이리스트: 1곡'), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      expect(find.text('✓ 담김'), findsOneWidget);
 
       expect(find.text('1'), findsOneWidget);
 

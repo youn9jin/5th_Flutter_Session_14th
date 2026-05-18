@@ -20,19 +20,11 @@ class SongListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final playlist = ref.watch(playlistProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '노래',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
+      appBar: AppBar(title: const Text('노래')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -40,22 +32,22 @@ class SongListScreen extends ConsumerWidget {
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.info_outline,
                   size: 18,
-                  color: theme.colorScheme.onPrimaryContainer,
+                  color: colorScheme.onPrimaryContainer,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     '이 화면의 플레이리스트: ${playlist.length}곡',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer,
+                      color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -64,9 +56,10 @@ class SongListScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               itemCount: _songs.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final song = _songs[index];
                 final isAdded =
@@ -74,8 +67,23 @@ class SongListScreen extends ConsumerWidget {
                 return SongCard(
                   song: song,
                   isAdded: isAdded,
-                  onAdd: () =>
-                      ref.read(playlistProvider.notifier).addSong(song),
+                  onAdd: () {
+                    if (isAdded) return;
+                    ref.read(playlistProvider.notifier).addSong(song);
+                    ScaffoldMessenger.of(context)
+                      ..clearSnackBars()
+                      ..showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '${song.title}이 플레이리스트에 추가됐습니다',
+                            style: TextStyle(color: colorScheme.onInverseSurface),
+                          ),
+                          backgroundColor: colorScheme.inverseSurface,
+                          duration: const Duration(milliseconds: 1500),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                  },
                 );
               },
             ),

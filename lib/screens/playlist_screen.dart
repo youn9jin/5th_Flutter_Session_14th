@@ -10,65 +10,28 @@ class PlaylistScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final playlist = ref.watch(playlistProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '플레이리스트',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
+      appBar: AppBar(title: const Text('플레이리스트')),
       body: playlist.isEmpty
           ? _EmptyState(theme: theme)
           : Column(
               children: [
                 Expanded(
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                     itemCount: playlist.length,
                     separatorBuilder: (context, index) =>
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final song = playlist[index];
-                      final style = styleForGenre(song.genre);
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        leading: CircleAvatar(
-                          radius: 22,
-                          backgroundColor:
-                              style.color.withValues(alpha: 0.14),
-                          child: Icon(
-                            style.icon,
-                            color: style.color,
-                            size: 22,
-                          ),
-                        ),
-                        title: Text(
-                          song.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          song.artist,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                      return _PlaylistCard(
+                        song: song,
+                        onRemove: () => ref
+                            .read(playlistProvider.notifier)
+                            .removeSong(song),
                       );
                     },
                   ),
@@ -80,12 +43,10 @@ class PlaylistScreen extends ConsumerWidget {
                     vertical: 18,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    border: Border(
-                      top: BorderSide(
-                        color: theme.colorScheme.outlineVariant,
-                        width: 1,
-                      ),
+                    color: colorScheme.primaryContainer,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
                     ),
                   ),
                   child: SafeArea(
@@ -96,14 +57,15 @@ class PlaylistScreen extends ConsumerWidget {
                         Text(
                           '총 곡 수',
                           style: theme.textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           '${playlist.length}곡',
                           style: theme.textTheme.titleLarge?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
                             fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ],
@@ -116,6 +78,68 @@ class PlaylistScreen extends ConsumerWidget {
   }
 }
 
+class _PlaylistCard extends StatelessWidget {
+  final Song song;
+  final VoidCallback onRemove;
+
+  const _PlaylistCard({required this.song, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final style = styleForGenre(song.genre);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 26,
+            backgroundColor: style.color.withValues(alpha: 0.22),
+            child: Icon(style.icon, color: style.color, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  song.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  song.artist,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onRemove,
+            tooltip: '플레이리스트에서 제거',
+            icon: const Icon(Icons.close_rounded, size: 22),
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   final ThemeData theme;
 
@@ -123,23 +147,31 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = theme.colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.queue_music,
-              size: 72,
-              color: theme.colorScheme.onSurfaceVariant,
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.queue_music_rounded,
+                size: 72,
+                color: colorScheme.outline,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               '플레이리스트가 비어있어요',
               style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

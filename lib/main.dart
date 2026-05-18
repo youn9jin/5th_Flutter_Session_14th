@@ -18,16 +18,28 @@ class MusicApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF6750A4),
+    );
+
     return MaterialApp(
       title: '플레이리스트',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
-        appBarTheme: const AppBarTheme(
+        colorScheme: colorScheme,
+        scaffoldBackgroundColor: colorScheme.surface,
+        appBarTheme: AppBarTheme(
           centerTitle: false,
           elevation: 0,
           scrolledUnderElevation: 0,
+          backgroundColor: colorScheme.surface,
+          surfaceTintColor: Colors.transparent,
+          titleTextStyle: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       home: const RootTabs(),
@@ -54,6 +66,7 @@ class _RootTabsState extends ConsumerState<RootTabs> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final playlist = ref.watch(playlistProvider);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: IndexedStack(
@@ -62,6 +75,8 @@ class _RootTabsState extends ConsumerState<RootTabs> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
+        indicatorColor: colorScheme.primaryContainer,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (index) {
           setState(() => _currentIndex = index);
         },
